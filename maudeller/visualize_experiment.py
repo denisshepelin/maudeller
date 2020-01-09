@@ -5,7 +5,6 @@ import click
 
 from escher import Builder
 
-# TODO change options to arguments
 
 @click.group()
 def cli():
@@ -37,20 +36,19 @@ def viz(model_path, experiment, map_json_path, map_name, big_fonts, output):
     exp_data = next((x for x in model["experiments"] if x["id"]==experiment), None)
 
     if experiment is not None:
-        # Reaction data is only in experimental measurements
+        # Reaction data is in experimental measurements
         reaction_data = {x["target_id"]:x["value"] for x in exp_data["reaction_measurements"]}
         exp_metabolite_data = {x["target_id"]:x["value"] for x in exp_data["metabolite_measurements"]}
 
-        # Enzyme abundance and unbalanced metabolites are specified in priors
-        unbalanced_metabolite_data = {x["target_id"]:x["location"] for x in model["priors"]["unbalanced_metabolites"][experiment]}
-        metabolite_data = {**exp_metabolite_data, **unbalanced_metabolite_data}    
+        # Enzyme abundance and unbalanced metabolites are now also specified in experimental measurements
+        metabolite_data = exp_metabolite_data    
 
         # Enzymes are trickier
         # Priors are stored right now at reaction level, so we need to recover
         # Besides that Escher currently doesn't allow to disentangle proteomics and fluxomics
 
         if output is None:
-            output = f"{Path(model_path).stem}_{Path(map_json_path).stem}.html"
+            output = f"{Path(model_path).stem}_{Path(map_json_path).stem}_{experiment}.html"
         
 
         # potentially change css for svg.escher-svg .node-label and .reaction-label to make biger font-size
