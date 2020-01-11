@@ -35,6 +35,10 @@ def viz(model_path, experiment, map_json_path, map_name, big_fonts, output):
     model = toml.load(model_path)
     exp_data = next((x for x in model["experiments"] if x["id"]==experiment), None)
 
+
+    if map_json_path is None and map_name is None:
+        print("Please specify either map name or map json path")
+        quit()
     if experiment is not None:
         # Reaction data is in experimental measurements
         reaction_data = {x["target_id"]:x["value"] for x in exp_data["reaction_measurements"]}

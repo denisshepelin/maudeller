@@ -3,6 +3,7 @@ import cobra
 import toml
 import click
 import re
+from pathlib import Path
 
 full_reactions = [
     "PGI",
@@ -51,25 +52,13 @@ mechanism_map = {
 }
 
 
-def make_backbone(model, reactions, unwanted_metabolites, unbalanced_metabolites):
+def get_reactions_dict(model, reactions, unwanted_metabolites):
     """
-    model - cobra Model object
-
-    reactions - list of reaction IDs that are in this model
-
-    unwanted_metabolites - list of metabolites that are going to be removed from reactions
+    Given COBRA model, reactions and metabolites that should not be included in the Maud model
+    prepare python dict containing information about reactions and set of metabolites that are in those reactions
     """
-    print("Loading model...")
-    print(model)
-
+    result = []
     metabolites = set()
-
-    # We want to make a dict for toml
-    toml_dict = {}
-
-    toml_dict["compartments"] = [{"id": "c", "name": "cytosol", "volume": 1}]
-    
-    toml_dict["reactions"] = []
     for rid in reactions:
         r = model.reactions.get_by_id(rid)
         metabolites.update([m.id for m in r.metabolites])
@@ -99,23 +88,100 @@ def make_backbone(model, reactions, unwanted_metabolites, unbalanced_metabolites
         ]
         # It's possible to specify mechanism for each reaction
         # rdict["enzymes"] = [{"id" : rid, "name": r.name, "mechanism": mechanism_map[rid]}]
+        result.append(rdict)
 
-        toml_dict["reactions"].append(rdict)
+    return (result, metabolites)
 
-    toml_dict["metabolites"] = []
+
+def get_metabolites_dict(
+    model, metabolites, unwanted_metabolites, unbalanced_metabolites
+):
+    """
+    Given model, metabolite IDs and list of metabolites to be excluded and unbalanced metabolites
+    Prepare python dicts representing metabolites information
+    """
+    result = []
     for mid in metabolites:
         if mid not in unwanted_metabolites:
             m = model.metabolites.get_by_id(mid)
             mdict = {}
-            match = re.match(r"(?P<met_id>\S+)_(?P<compartment>\w)$",m.id).groupdict()
+            match = re.match(r"(?P<met_id>\S+)_(?P<compartment>\w)$", m.id).groupdict()
             mdict["id"] = match["met_id"]
             mdict["name"] = m.name
             mdict["compartment"] = match["compartment"]
             if m.id in unbalanced_metabolites:
                 mdict["balanced"] = False
             else:
-                mdict["balanced"] = True            
-            toml_dict["metabolites"].append(mdict)
+                mdict["balanced"] = True
+            result.append(mdict)
+    return result
+
+
+def get_priors(
+    model_dict,
+    data_path,
+    kinetic_file="priors_kinetic_parameters.toml",
+    thermodynamics_file="thermodynamic_priors.toml",
+):
+    """
+    Given model reactions and set of metabolites 
+    select from database relevant parts of kinetic laws and formation energies
+    """
+
+    kinetic_toml = toml.load(Path(data_path) / kinetic_file)
+    thermodynamic_toml = toml.load(Path(data_path) / thermodynamics_file)
+
+    # select kinetic parameters for reactions. They are stored in
+    # ["priors"]["kinetic_parameters"][REACTION_ID]
+    rxn_ids = [r["id"] for r in model_dict["reactions"]]
+    kinetic_parameters = {
+        rid: kinetic_toml["priors"]["kinetic_parameters"][rid] for rid in rxn_ids
+    }
+
+    # select formation energies. They are stored in
+    # ["priors"]["thermodynamic_parameters"]["formation_energies"] list
+    met_ids = [m["id"] for m in model_dict["metabolites"]]
+    thermodynamic_parameters = [
+        fe
+        for fe in thermodynamic_toml["priors"]["thermodynamic_parameters"][
+            "formation_energies"
+        ]
+        if fe["target_id"] in met_ids
+    ]
+    return (kinetic_parameters, thermodynamic_parameters)
+
+
+def make_backbone(
+    model, reactions, unwanted_metabolites, unbalanced_metabolites, priors_data_path
+):
+    """
+    model - cobra Model object
+
+    reactions - list of reaction IDs that are in this model
+
+    unwanted_metabolites - list of metabolites that are going to be removed from reactions
+    """
+    print("Loading model...")
+    print(model)
+
+    # We want to make a dict for toml
+    toml_dict = {}
+
+    toml_dict["compartments"] = [{"id": "c", "name": "cytosol", "volume": 1}]
+
+    toml_dict["reactions"], metabolites = get_reactions_dict(
+        model, reactions, unwanted_metabolites
+    )
+
+    toml_dict["metabolites"] = get_metabolites_dict(
+        model, metabolites, unwanted_metabolites, unbalanced_metabolites
+    )
+
+    toml_dict["priors"] = {}
+    toml_dict["priors"]["thermodynamic_parameters"] = {}
+    toml_dict["priors"]["kinetic_parameters"], toml_dict["priors"][
+        "thermodynamic_parameters"
+    ]["formation_energies"] = get_priors(toml_dict, priors_data_path)
 
     return toml_dict
 
@@ -152,6 +218,12 @@ def make_backbone(model, reactions, unwanted_metabolites, unbalanced_metabolites
     type=click.Path(exists=True),
 )
 @click.option(
+    "--priors-data-path",
+    help="Path to the folder containing prior information",
+    default="/Users/denshe/Work/KineticAnalysis/maudeller/data/common/",
+    type=click.Path(exists=True),
+)
+@click.option(
     "-o",
     "--output",
     help="Filename where model will be writen in toml format. Default is output.toml",
@@ -163,6 +235,7 @@ def make_model(
     unbalanced_metabolites=None,
     remove_metabolites=["h2o_c", "h_c", "pi_c"],
     cobra_model_path="/Users/denshe/Work/DataAnalysis/DataIntegrationProject/models/iML1515.json",
+    priors_data_path="/Users/denshe/Work/KineticAnalysis/maudeller/data/common/",
     output="output.toml",
 ):
     # Check types of inputs and convert them to lists!
@@ -195,11 +268,15 @@ def make_model(
     # In theory there should be at least some unbalanced metabolites
     if type(unbalanced_metabolites) is str:
         unbalanced_metabolites = unbalanced_metabolites.split(",")
-    if len(unbalanced_metabolites) == 0:
+    if unbalanced_metabolites is None:
         print("There are no unbalanced metabolites, that is strange!")
 
     model_dict = make_backbone(
-        cobra_model, reaction_list, remove_metabolites, unbalanced_metabolites
+        cobra_model,
+        reaction_list,
+        remove_metabolites,
+        unbalanced_metabolites,
+        priors_data_path,
     )
 
     with open(output, "w") as out:
