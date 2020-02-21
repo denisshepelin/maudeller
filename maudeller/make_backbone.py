@@ -5,52 +5,6 @@ import click
 import re
 from pathlib import Path
 
-full_reactions = [
-    "PGI",
-    "FBP",
-    "FBA",
-    "TPI",
-    "GAPD",
-    "PGK",
-    "PGM",
-    "ENO",
-    "G6PDH2r",
-    "PGL",
-    "GND",
-    "RPI",
-    "RPE",
-    "TKT1",
-    "TKT2",
-    "TALA",
-    "EDD",
-    "EDA",
-]
-
-noloop_reactions = ["PGI", "G6PDH2r", "PGL", "GND", "RPI", "RPE", "TKT1"]
-
-loop_reactions = ["PGI", "G6PDH2r", "PGL", "GND", "RPI", "RPE", "TKT1", "TALA"]
-
-mechanism_map = {
-    "PGI": "uniuni",
-    "FBP": "uniuni",
-    "FBA": "uniuni",
-    "TPI": "ordered_unibi",
-    "GAPD": "uniuni",
-    "PGK": "ordered_bibi",
-    "PGM": "uniuni",
-    "ENO": "uniuni",
-    "G6PDH2r": "ordered_bibi",
-    "PGL": "uniuni",
-    "GND": "ordered_bibi",  # CO2 is ignored
-    "RPI": "uniuni",
-    "RPE": "uniuni",
-    "TKT1": "ordered_bibi",
-    "TKT2": "ordered_bibi",
-    "TALA": "ordered_bibi",
-    "EDD": "uniuni",
-    "EDA": "ordered_unibi",
-}
-
 
 def get_reactions_dict(model, reactions, unwanted_metabolites):
     """
@@ -188,12 +142,6 @@ def make_backbone(
 
 @click.command()
 @click.option(
-    "-P",
-    "--preset",
-    type=click.Choice(["noloop", "ecoli", "loop"]),
-    help="Allows to choose from some prespecified set of reaction lists",
-)
-@click.option(
     "-R",
     "--reactions",
     nargs=1,
@@ -208,8 +156,9 @@ def make_backbone(
 @click.option(
     "--remove-metabolites",
     nargs=1,
-    help="Set of metabolite IDs to be remove, by default it's h2o, H+, Pi. Use None as option to bypass all removals",
-    default="h2o_c,h_c,pi_c",
+    help="Set of metabolite IDs to be remove, by default it's h2o, H+. Use None as option to bypass all removals",
+    show_default=True,
+    default="h2o_c,h_c",
 )
 @click.option(
     "--cobra-model-path",
@@ -220,8 +169,15 @@ def make_backbone(
 @click.option(
     "--priors-data-path",
     help="Path to the folder containing prior information",
-    default="/Users/denshe/Work/KineticAnalysis/maudeller/data/common/",
+    default="/Users/denshe/Work/KineticalModeling/maudeller/data/common/",
     type=click.Path(exists=True),
+)
+@click.option(
+    "-C",
+    "--toml-config",
+    "toml_config",
+    help="Load configurtation from toml file",
+    type=click.Path(exists=True)
 )
 @click.option(
     "-o",
@@ -230,33 +186,33 @@ def make_backbone(
     default="output.toml",
 )
 def make_model(
-    preset=None,
     reactions=None,
     unbalanced_metabolites=None,
-    remove_metabolites=["h2o_c", "h_c", "pi_c"],
+    remove_metabolites=["h2o_c", "h_c"],
     cobra_model_path="/Users/denshe/Work/DataAnalysis/DataIntegrationProject/models/iML1515.json",
-    priors_data_path="/Users/denshe/Work/KineticAnalysis/maudeller/data/common/",
+    priors_data_path="/Users/denshe/Work/KineticalModeling/maudeller/data/common/",
+    toml_config=None,
     output="output.toml",
 ):
-    # Check types of inputs and convert them to lists!
+    # Check if there is configuration file, if there is then load config from there
+    if toml_config is not None:
+        config = toml.load(Path(toml_config))
+        if "reactions" in config:
+            reactions = config["reactions"]
+        if "unbalanced_metabolites" in config:
+            unbalanced_metabolites = config["unbalanced_metabolites"]
 
     cobra_model = cobra.io.load_json_model(cobra_model_path)
 
+    # Check types of inputs and convert them to lists!
     # Decide what reactions are we going to use
     if reactions is not None:
         if type(reactions) is str:
             reaction_list = reactions.split(",")
+        if type(reactions) is list:
+            reaction_list = reactions
         print(f"Going to work on this {len(reaction_list)} reactions:")
         print(",".join(reaction_list))
-    else:
-        if preset is not None:
-            print(f"Using preset {preset}")
-            if preset == "noloop":
-                reaction_list = noloop_reactions
-            elif preset == "ecoli":
-                reaction_list = full_reactions
-            elif preset == "loop":
-                reaction_list = loop_reactions
 
     # Are there any metabolites that should be filtered out?
     if type(remove_metabolites) is str:

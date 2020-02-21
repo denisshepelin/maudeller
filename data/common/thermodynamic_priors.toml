@@ -26,6 +26,7 @@ formation_energies = [
   { target_id = "fdp", location = -2220.9, scale = 2.1},
   { target_id = "r5p", location = -1252.2, scale = 2.0},
   { target_id = "s7p", location = -1403.2, scale = 3.7},
+  { target_id = "pi", location = -1073.3, scale = 1.5}
 ]
 
 marginal_dgs = [
