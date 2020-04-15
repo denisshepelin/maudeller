@@ -1,0 +1,13 @@
+# Config file for make_ecoli_model
+# Should be equivalent to ecoli_noloop model
+
+reactions = ["PGI", "G6PDH2r", "PGL", "GND", "RPI", "RPE", "TKT1"]
+
+unbalanced_metabolites = [
+    "g6p_c",
+    "nadp_c",
+    "nadph_c",
+    "r5p_c",
+    "xu5p__D_c",
+    "g3p_c",
+]

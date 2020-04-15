@@ -1,0 +1,178 @@
+###### Priors ######
+[priors.kinetic_parameters]
+
+# abcd for substrates, pqrs for products
+# location = best guess on non-log scale
+# scale = error on ln-scale
+# To plot distribution use LogNormal(ln(location),scale)
+# Plot[PDF[LogNormal[ln(location), scale], x], {x, 0, 100}]
+#
+# Template for A -> B
+# = [
+#  { target_id = 'Kcat1', location = FIX, scale = FIX},
+#  { target_id = 'Ka', location = FIX, scale = FIX},
+#  { target_id = 'Kp', location = FIX, scale = FIX},
+#]
+
+# Template for A -> B + C
+# = [
+#  { target_id = 'Kcat1', location = FIX, scale = FIX},
+#  { target_id = 'Ka', location = FIX, scale = FIX},
+#  { target_id = 'Kp', location = FIX, scale = FIX},
+#  { target_id = 'Kq', location = FIX, scale = FIX},
+#]
+
+# Template for A + B -> C + D
+# = [
+#  { target_id = 'Kcat1', location = FIX, scale = FIX},
+#  { target_id = 'Ka', location = FIX, scale = FIX},
+#  { target_id = 'Kb', location = FIX, scale = FIX},
+#  { target_id = 'Kp', location = FIX, scale = FIX},
+#  { target_id = 'Kq', location = FIX, scale = FIX},-
+#]
+
+
+# Default decisions for kcats and Kms:
+# If the value is known location is defined and scale can be 0.2 or estimated from BRENDA data
+# If the value is unknown:
+# kcat - location = 10.0, scale = 3.0 (from Davidi) 10th percentile is 0.21, 90th percentile is 467
+# Kms  - location = concentration of metabolite in WT, scale = 1.5 For example if concentration is 10mM then 10th percentile is 1.46 and 90th percentile is 68.36
+# This article is very useful https://pubs.acs.org/doi/10.1021/acs.chemrev.8b00039
+# According to this article location of kcat should be 10 and scale should cover 10^-4 up to 10^6 
+# Kms should be around 0.1 (100uM) and span range around 1e-6 up to 1e4 mM
+
+PGI = [
+  { target_id = 'Kcat1', location = 126.0, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 3.0, scale = 0.2}, # SABIO Glucose 6-P mM
+  { target_id = 'Kp', location = 0.16, scale = 0.2}, # SABIO Fructose 6-P mM
+]
+
+PFK = [
+  { target_id = 'Kcat1', location = 110.0, scale = 0.2}, # SABIO-RK
+  { target_id = 'Ka', location = 0.03, scale = 0.2}, # EcoCyc for f-6-phosphate
+  { target_id = 'Kb', location = 0.06, scale = 0.2}, # EcoCyc for ATP
+  { target_id = 'Kp', location = 15, scale = 1.5}, # For fructose-16-bp Imputed from Bionumbers
+  { target_id = 'Kq', location = 0.55, scale = 1.5}, # Imputed for ADP
+]
+
+FBP = [
+  { target_id = 'Kcat1', location = 24.0, scale = 0.2}, # SABIO
+  { target_id = 'Ka', location = 16.0, scale = 0.2}, # SABIO Fructose 1,6-bP
+  { target_id = 'Kp', location = 0.69, scale = 1.5}, # SABIO Fructose 6-P Imputed from the data
+  { target_id = 'Kq', location = 1.0, scale = 1.5}, # Guess for phosphate
+]
+
+FBA = [
+  { target_id = 'Kcat1', location = 7.0, scale = 0.2}, # SABIO
+  { target_id = 'Ka', location = 0.02, scale = 0.2}, # SABIO f16bp 
+  { target_id = 'Kp', location = 0.03, scale = 0.2}, # SABIO Ki g3p
+  { target_id = 'Kq', location = 0.13, scale = 0.2}, # SABIO Ki dhap 
+]
+
+TPI = [
+  { target_id = 'Kcat1', location = 9000.0, scale = 0.2}, # BRENDA
+  { target_id = 'Ka', location = 2.16, scale = 1.5}, # dhap Imputed from the data
+  { target_id = 'Kp', location = 200.0, scale = 0.2}, # g3p
+]
+
+GAPD = [
+  { target_id = 'Kcat1', location = 268.0, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 0.89, scale = 0.2}, # Martas collection g3p 
+  { target_id = 'Kb', location = 0.045, scale = 0.2}, # Martas collection nad
+  { target_id = 'Kc', location = 1.0, scale = 1.5}, # Guess for phosphate
+  { target_id = 'Kp', location = 2.02, scale = 1.5}, # 13dpg Imputed from the data (for 3pg_c)
+  { target_id = 'Kq', location = 0.003, scale = 1.5}, # nadh Imputed from the data
+]
+
+PGK = [
+  { target_id = 'Kcat1', location = 329.0, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 2.02, scale = 1.5}, # 3pg Imputed from the data
+  { target_id = 'Kb', location = 5.37, scale = 1.5}, # atp Imputed from the data
+  { target_id = 'Kp', location = 2.02, scale = 1.5}, # 13dpg Imputed from the data
+  { target_id = 'Kq', location = 0.6, scale = 1.5}, # adp Imputed from the data
+]
+
+PGM = [
+  { target_id = 'Kcat1', location = 330.0, scale = 0.2}, # SABIO
+  { target_id = 'Ka', location = 2.02, scale = 1.5}, # 2pg_c Imputed from the data
+  { target_id = 'Kp', location = 2.02, scale = 1.5}, # 3pg_c Imputed from the data
+]
+
+ENO = [
+  { target_id = 'Kcat1', location = 396, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 0.1, scale = 0.2}, # BRENDA 2pg_c
+  { target_id = 'Kp', location = 0.25, scale = 1.5}, # pep Imputed from the data
+]
+
+G6PDH2r = [
+  { target_id = 'Kcat1', location = 174.0, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 0.145, scale = 0.2}, # g6p
+  { target_id = 'Kb', location = 0.0075, scale = 0.2}, # nadp
+  { target_id = 'Kp', location = 0.61, scale = 1.5}, # 6pgl Imputed from the data (for 6pgc)
+  { target_id = 'Kq', location = 0.037, scale = 1.5}, # nadph Imputed from the data
+]
+
+PGL = [
+  { target_id = 'Kcat1', location = 472.0, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 0.61, scale = 1.5},  # 6pgl
+  { target_id = 'Kp', location = 0.61, scale = 1.5}, # 6pgc
+]
+
+GND = [
+  { target_id = 'Kcat1', location = 55.0, scale = 0.2}, # Davidi
+  { target_id = 'Ka', location = 0.093, scale = 0.2}, # EcoCyc 6pgc
+  { target_id = 'Kb', location = 0.049, scale = 0.2}, # EcoCyc nadp
+  { target_id = 'Kp', location = 0.42, scale = 1.5}, # ru5p
+  { target_id = 'Kq', location = 0.037, scale = 1.5}, # nadph Imputed from the data
+  { target_id = 'Kr', location = 10.0, scale = 1.5}, # co2 Assumed
+]
+
+RPI = [
+  { target_id = 'Kcat1', location = 2100.0, scale = 0.2}, # EcoCyc
+  { target_id = 'Ka', location = 3.1, scale = 0.2}, # EcoCyc ribose 
+  { target_id = 'Kp', location = 0.06, scale = 1.5}, # ribulose Imputed from the data 
+]
+
+RPE = [
+  { target_id = 'Kcat1', location = 10, scale = 3.0}, # Assumed
+  { target_id = 'Ka', location = 0.06, scale = 0.2}, # EcoCyc ribulose Imputed from the data 
+  { target_id = 'Kp', location = 0.06, scale = 1.5}, # xylulose Imputed from the data (from ribulose)
+]
+
+TKT1 = [
+  { target_id = 'Kcat1', location = 10, scale = 3.0}, # Assumed
+  { target_id = 'Ka', location = 1.4, scale = 0.2}, # EcoCyc ribose-5-P
+  { target_id = 'Kb', location = 0.16, scale = 0.2}, # EcoCyc xylulose-5-P
+  { target_id = 'Kp', location = 2.1, scale = 0.2}, # EcoCyc g3p
+  { target_id = 'Kq', location = 4.0, scale = 0.2}, # EcoCyc sedoheptulose 7-P
+] 
+
+TKT2 = [
+  { target_id = 'Kcat1', location = 10, scale = 3.0}, # Assumed
+  { target_id = 'Ka', location = 0.09, scale = 0.2}, # EcoCyc e4p
+  { target_id = 'Kb', location = 0.16, scale = 0.2}, # EcoCyc xylolse-5-P
+  { target_id = 'Kp', location = 1.1, scale = 0.2}, # EcoCyc fructose-6-P
+  { target_id = 'Kq', location = 2.1, scale = 0.2}, # EcoCyc g3p
+]
+
+TALA = [
+  { target_id = 'Kcat1', location = 72, scale = 0.2}, # Martas collection
+  { target_id = 'Ka', location = 1.9, scale = 0.2}, # BRENDA g3p
+  { target_id = 'Kb', location = 0.285, scale = 0.2}, # BRENDA s7p
+  { target_id = 'Kp', location = 0.250, scale = 0.2}, # BRENDA e4p  0.078-0.55
+  { target_id = 'Kq', location = 1.0, scale = 0.2}, # BRENDA f6p 0.6-22
+]
+
+EDD = [
+  { target_id = 'Kcat1', location = 10, scale = 3.0}, # Assumed
+  { target_id = 'Ka', location = 0.04, scale = 0.2}, # BRENDA 6pgc for all organisms
+  { target_id = 'Kp', location = 0.62, scale = 1.5}, # 2dd-gluconate-6-P Imputed from the data (from 6pgc)
+]
+
+EDA = [
+  { target_id = 'Kcat1', location = 283.8, scale = 0.2}, # EcoCyc
+  { target_id = 'Ka', location = 0.35, scale = 0.2}, # 2dd-gluconate-6-P
+  { target_id = 'Kp', location = 1.5, scale = 1.5}, # g3p Imputed from the data (ecmdb.ca)
+  { target_id = 'Kq', location = 8, scale = 1.5}, # pyr Imputed from the data (ecmdb.ca)
+]
+

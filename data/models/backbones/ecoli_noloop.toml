@@ -1,0 +1,175 @@
+[[compartments]]
+id = "c"
+name = "cytosol"
+volume = 1
+
+[[reactions]]
+id = "PGI"
+name = "Glucose-6-phosphate isomerase"
+[[reactions.enzymes]]
+id = "PGI"
+name = "Glucose-6-phosphate isomerase"
+mechanism = "modular_rate_law"
+gene = "pgi"
+
+
+[reactions.stoichiometry]
+f6p_c = 1
+g6p_c = -1
+[[reactions]]
+id = "G6PDH2r"
+name = "Glucose 6-phosphate dehydrogenase"
+[[reactions.enzymes]]
+id = "G6PDH2r"
+name = "Glucose 6-phosphate dehydrogenase"
+mechanism = "modular_rate_law"
+gene = "zwf"
+
+
+[reactions.stoichiometry]
+6pgl_c = 1
+g6p_c = -1
+nadp_c = -1
+nadph_c = 1
+[[reactions]]
+id = "PGL"
+name = "6-phosphogluconolactonase"
+[[reactions.enzymes]]
+id = "PGL"
+name = "6-phosphogluconolactonase"
+mechanism = "modular_rate_law"
+gene = "pgl"
+
+
+[reactions.stoichiometry]
+6pgc_c = 1
+6pgl_c = -1
+[[reactions]]
+id = "GND"
+name = "Phosphogluconate dehydrogenase"
+[[reactions.enzymes]]
+id = "GND"
+name = "Phosphogluconate dehydrogenase"
+mechanism = "modular_rate_law"
+gene = "gnd"
+
+
+[reactions.stoichiometry]
+6pgc_c = -1
+co2_c = 1
+nadp_c = -1
+nadph_c = 1
+ru5p__D_c = 1
+[[reactions]]
+id = "RPI"
+name = "Ribose-5-phosphate isomerase"
+[[reactions.enzymes]]
+id = "RPI"
+name = "Ribose-5-phosphate isomerase"
+mechanism = "modular_rate_law"
+gene = "rpiA"
+
+
+[reactions.stoichiometry]
+r5p_c = -1
+ru5p__D_c = 1
+[[reactions]]
+id = "RPE"
+name = "Ribulose 5-phosphate 3-epimerase"
+[[reactions.enzymes]]
+id = "RPE"
+name = "Ribulose 5-phosphate 3-epimerase"
+mechanism = "modular_rate_law"
+gene = "rpe"
+
+
+[reactions.stoichiometry]
+ru5p__D_c = -1
+xu5p__D_c = 1
+[[reactions]]
+id = "TKT1"
+name = "Transketolase"
+[[reactions.enzymes]]
+id = "TKT1"
+name = "Transketolase"
+mechanism = "modular_rate_law"
+gene = "tktA"
+
+
+[reactions.stoichiometry]
+g3p_c = 1
+r5p_c = -1
+s7p_c = 1
+xu5p__D_c = -1
+[[metabolites]]
+id = "s7p"
+name = "Sedoheptulose 7-phosphate"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "co2"
+name = "CO2 CO2"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "g6p"
+name = "D-Glucose 6-phosphate"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "ru5p__D"
+name = "D-Ribulose 5-phosphate"
+compartment = "c"
+balanced = true
+
+[[metabolites]]
+id = "6pgc"
+name = "6-Phospho-D-gluconate"
+compartment = "c"
+balanced = true
+
+[[metabolites]]
+id = "r5p"
+name = "Alpha-D-Ribose 5-phosphate"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "nadph"
+name = "Nicotinamide adenine dinucleotide phosphate - reduced"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "f6p"
+name = "D-Fructose 6-phosphate"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "6pgl"
+name = "6-phospho-D-glucono-1,5-lactone"
+compartment = "c"
+balanced = true
+
+[[metabolites]]
+id = "g3p"
+name = "Glyceraldehyde 3-phosphate"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "nadp"
+name = "Nicotinamide adenine dinucleotide phosphate"
+compartment = "c"
+balanced = false
+
+[[metabolites]]
+id = "xu5p__D"
+name = "D-Xylulose 5-phosphate"
+compartment = "c"
+balanced = false
+

@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 
-def get_reactions_dict(model, reactions, unwanted_metabolites):
+def get_reactions_dict(model, reactions, unwanted_metabolites, gpr):
     """
     Given COBRA model, reactions and metabolites that should not be included in the Maud model
     prepare python dict containing information about reactions and set of metabolites that are in those reactions
@@ -28,10 +28,13 @@ def get_reactions_dict(model, reactions, unwanted_metabolites):
         if len(r.genes) == 1:
             gene_name = r.gene_name_reaction_rule
         else:
-            gene_name = "FIX"
-            print(
-                f"Reaction with ID {rid} has no gene annotation potentially because there are too many genes to set it automatically. Candidates are: {r.gene_name_reaction_rule}"
-            )
+            if rid in gpr:
+                gene_name = gpr[rid]
+            else:
+                gene_name = "FIX"
+                print(
+                    f"Reaction with ID {rid} has no gene annotation potentially because there are too many genes to set it automatically. Candidates are: {r.gene_name_reaction_rule}"
+                )
         rdict["enzymes"] = [
             {
                 "id": rid,
@@ -106,7 +109,7 @@ def get_priors(
 
 
 def make_backbone(
-    model, reactions, unwanted_metabolites, unbalanced_metabolites, priors_data_path
+    model, reactions, unwanted_metabolites, unbalanced_metabolites, priors_data_path, gpr
 ):
     """
     model - cobra Model object
@@ -124,7 +127,7 @@ def make_backbone(
     toml_dict["compartments"] = [{"id": "c", "name": "cytosol", "volume": 1}]
 
     toml_dict["reactions"], metabolites = get_reactions_dict(
-        model, reactions, unwanted_metabolites
+        model, reactions, unwanted_metabolites, gpr
     )
 
     toml_dict["metabolites"] = get_metabolites_dict(
@@ -202,6 +205,7 @@ def make_model(
         if "unbalanced_metabolites" in config:
             unbalanced_metabolites = config["unbalanced_metabolites"]
 
+    gpr = config.get("gpr",[])
     cobra_model = cobra.io.load_json_model(cobra_model_path)
 
     # Check types of inputs and convert them to lists!
@@ -233,6 +237,7 @@ def make_model(
         remove_metabolites,
         unbalanced_metabolites,
         priors_data_path,
+        gpr,
     )
 
     with open(output, "w") as out:
